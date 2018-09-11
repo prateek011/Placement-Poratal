@@ -1,0 +1,187 @@
+ import java.awt.*;
+import java.awt.event.*;
+import java.awt.FlowLayout;
+import java.sql.*;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.JTextArea;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+
+public class TelephoneDir extends JFrame implements ActionListener
+{
+static JLabel label1,label2,label3,sep;
+static JButton addB,modify,delete,clear,browse;
+static JTextField txtA1;
+static JTextArea  txtA2;
+static Connection con;
+static Statement st1,st2;
+static ResultSet rs1;
+static TelephoneDir phoneDir;
+
+public TelephoneDir()
+   {
+ 	super("Telephone Directory :");
+ 	//JPanel TD = new JPanel();
+ 	setLayout(new FlowLayout());
+ 	try	{
+ 		 Class.forName("sun.jdbc.odbc.JdbcOdbcDriver");
+ 	 	 con = DriverManager.getConnection ("jdbc:odbc:Driver={Microsoft Access Driver (*.mdb)};DBQ=teledir.mdb;DriverID=22}","","");//;READONLY=true",User,Password
+ 	 	 st1=con.createStatement();
+		 rs1=st1.executeQuery("select * from dir1");
+		}
+	catch(Exception e)
+		{
+		 System.out.println("there was some error in establishing connection : "+e);
+		}
+	label1 = new JLabel("        Name :       ");
+	add(label1);
+	txtA1 = new JTextField(15);
+	add(txtA1);
+	label2 = new JLabel("  Phone Number : ");
+	add(label2);
+	txtA2 = new JTextArea(1,15);
+	add(txtA2);
+	sep = new JLabel("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-");
+	add(sep);
+	addB=new JButton("ADD RECORD");
+	add(addB);
+	browse=new JButton("VIEW RECORDS");
+	add(browse);
+	modify=new JButton("MODIFY");
+	add(modify);
+	delete=new JButton("DELETE");
+	add(delete);
+	clear=new JButton("CLEAR TEXT");
+	add(clear);
+	sep = new JLabel("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-");
+	add(sep);
+	label3 = new JLabel("");
+	add(label3);
+	sep = new JLabel("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-");
+	add(sep);
+
+	addB.addActionListener(this);
+	browse.addActionListener(this);
+	modify.addActionListener(this);
+	delete.addActionListener(this);
+	clear.addActionListener(this);
+	txtA1.addActionListener(this);
+   }
+ public void actionPerformed(ActionEvent e)
+	 {
+	 	if(e.getSource()==txtA1)
+	 	 {
+	 	 	label3.setText("First Name with it");
+	 	 	String nam=txtA1.getText();
+	 	 	try
+				{
+
+					st1.close();				//rs1.close();
+					st1=con.createStatement();
+					rs1=st1.executeQuery("Select * from dir1 where UserName Like '"+nam+"%'");
+					rs1.next();
+					txtA2.setText(rs1.getString("PhoneN"));
+					txtA1.setText(rs1.getString("UserName"));
+				}
+			catch(Exception e2)
+				{
+				 label3.setText("No Such UserName Found : "+nam);
+				}
+
+	 	 }
+	 	if(e.getSource()==addB)
+	 	 {
+	 	 	label3.setText("Added new RECORD to the DataBase");
+	 	 	String nam=txtA1.getText();
+			String num=txtA2.getText();
+			try
+			 {
+				st2=con.createStatement();
+				String query="insert into dir1 values('"+num+"','"+nam+"')";
+				st2.executeUpdate(query);
+				st2.close();
+			 }
+			catch(Exception e2)
+			 {
+				label3.setText("Check that fields are not empty.");
+			 }
+
+	 	 }
+	 	if(e.getSource()==browse)
+	 	 {
+	 	 	label3.setText("View NEXT RECORD from the DataBase");
+	 	 	try
+				{
+				if(rs1.next()==true)
+					{
+					txtA2.setText(rs1.getString("PhoneN"));
+					txtA1.setText(rs1.getString("UserName"));
+					}
+				else
+					{
+					st1.close();				//rs1.close();
+					st1=con.createStatement();
+					rs1=st1.executeQuery("Select * from dir1");
+					rs1.next();
+					txtA2.setText(rs1.getString("PhoneN"));
+					txtA1.setText(rs1.getString("UserName"));
+					}
+				}
+			catch(Exception e2)
+				{
+				 label3.setText("Error in Viewing : "+e2);
+				}
+	 	 }
+	 	if(e.getSource()==modify)
+	 	 {
+	 	 	label3.setText("Modify RECORD of the DataBase");
+	 	 	try
+				{
+				st2=con.createStatement();
+				String nam=txtA1.getText();
+			    String num=txtA2.getText();
+				String ss="update dir1 set PhoneN='"+num+"', UserName='"+nam+"' where UserName='"+nam+"' OR PhoneN='"+num+"'";
+				st2.executeUpdate(ss);
+				st2.close();
+				}
+			catch(Exception e2)
+				{
+				label3.setText("Error in MODIFY : "+e2);
+				}
+	 	 }
+	 	if(e.getSource()==delete)
+	 	 {
+	 	 	label3.setText("Delete RECORD from the DataBase");
+	 	 	try
+				{
+				st2=con.createStatement();
+				String ts=txtA1.getText();
+				String ss="delete from dir1 where UserName='"+ts+"'";
+				label3.setText(label3.getText() + " : " +ss);
+				st2.executeUpdate(ss);
+				st2.close();
+				}
+			catch(Exception e2)
+				{
+				label3.setText("Error in DELETE : "+e2);
+				}
+	 	 }
+	 	if(e.getSource()==clear)
+	 	 {
+	 	 	label3.setText("Clears both of Text Fields");
+	 	 	txtA1.setText("");
+			txtA2.setText("");
+
+	 	 }
+	 }  
+ public static void main(String args[])
+   {
+   	TelephoneDir TAPP = new TelephoneDir();
+   	TAPP.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+   	TAPP.setSize(250,320);
+   	TAPP.setVisible(true);   	
+   }
+
+}
